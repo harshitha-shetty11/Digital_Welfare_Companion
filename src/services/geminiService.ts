@@ -1,0 +1,130 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { getSystemPrompt } from '../utils/prompts';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
+export interface ChatResponse {
+  response: string;
+  extractedInfo?: {
+    age?: number;
+    income?: number;
+    state?: string;
+    occupation?: string;
+    familySize?: number;
+  };
+  suggestedSchemes?: number[];
+}
+
+export const processUserQuery = async (
+  userQuery: string,
+  language: string,
+  conversationHistory: any[],
+  availableSchemes: any[]
+): Promise<ChatResponse> => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const systemPrompt = getSystemPrompt(language);
+    
+    // Build conversation context
+    const conversationContext = conversationHistory
+      .slice(-4)
+      .map(msg => `${msg.sender}: ${msg.text}`)
+      .join('\n');
+    
+    // Language mapping for clearer instruction
+    const languageNames = {
+      'hi': 'Hindi (हिंदी)',
+      'en': 'English',
+      'te': 'Telugu (తెలుగు)',
+      'ta': 'Tamil (தமிழ்)',
+      'bn': 'Bengali (বাংলা)',
+      'gu': 'Gujarati (ગુજરાતી)',
+      'kn': 'Kannada (ಕನ್ನಡ)',
+      'ml': 'Malayalam (മലയാളം)',
+      'mr': 'Marathi (मराठी)',
+      'or': 'Odia (ଓଡ଼ିଆ)',
+      'pa': 'Punjabi (ਪੰਜਾਬੀ)',
+      'ur': 'Urdu (اردو)'
+    };
+
+    const languageName = languageNames[language as keyof typeof languageNames] || languageNames['hi'];
+
+    const prompt = `${systemPrompt}
+
+Previous conversation:
+${conversationContext}
+
+User query: ${userQuery}
+
+IMPORTANT: You MUST respond ONLY in ${languageName}. Do not use any other language in your response. Be helpful and conversational while maintaining the specified language throughout your entire response.`;
+
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+
+    // Extract user information (simplified for hackathon)
+    const extractedInfo = await extractUserInformation(userQuery, language);
+    
+    // Find relevant schemes
+    const suggestedSchemes = await findRelevantSchemes(userQuery, extractedInfo, availableSchemes);
+
+    return {
+      response,
+      extractedInfo,
+      suggestedSchemes
+    };
+  } catch (error) {
+    console.error('Gemini API error:', error);
+    throw new Error('Failed to process query');
+  }
+};
+
+const extractUserInformation = async (query: string, language: string) => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const prompt = `Extract user information from this query in JSON format. Only include fields that are explicitly mentioned:
+- age (number)
+- income (monthly income in rupees)
+- state (Indian state name)
+- occupation (job/profession)
+- familySize (number of family members)
+
+Query: "${query}"
+Language: ${language}
+
+Respond with only valid JSON. Example: {"age": 25, "state": "Maharashtra"}`;
+
+    const result = await model.generateContent(prompt);
+    const response = result.response.text();
+    
+    // Clean JSON response
+    const cleanJson = response.replace(/``````\n?/g, '').trim();
+    return JSON.parse(cleanJson);
+  } catch (error) {
+    console.error('Error extracting user information:', error);
+    return {};
+  }
+};
+
+const findRelevantSchemes = async (query: string, userInfo: any, schemes: any[]) => {
+  const keywords = query.toLowerCase();
+  const relevantSchemes: number[] = [];
+
+  schemes.forEach(scheme => {
+    // Simple keyword matching for hackathon demo
+    if (keywords.includes('किसान') || keywords.includes('farmer') || keywords.includes('agriculture')) {
+      if (scheme.category === 'agriculture') relevantSchemes.push(scheme.id);
+    }
+    
+    if (keywords.includes('छात्रवृत्ति') || keywords.includes('scholarship') || keywords.includes('education')) {
+      if (scheme.category === 'education') relevantSchemes.push(scheme.id);
+    }
+    
+    if (keywords.includes('घर') || keywords.includes('house') || keywords.includes('housing')) {
+      if (scheme.category === 'housing') relevantSchemes.push(scheme.id);
+    }
+  });
+
+  return relevantSchemes.slice(0, 3);
+};

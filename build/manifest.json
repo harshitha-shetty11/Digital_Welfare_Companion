@@ -1,0 +1,21 @@
+{
+  "short_name": "Welfare Companion",
+  "name": "Digital Welfare Companion",
+  "description": "Voice-enabled multilingual assistant for government welfare schemes",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["government", "social", "utilities"],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}
