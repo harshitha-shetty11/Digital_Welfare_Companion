@@ -57,15 +57,20 @@ digital-welfare-companion/
 ## Tech Stack
 
 ### Frontend
-- React 18 with TypeScript
+- React 18 with TypeScript:  For building a dynamic and type-safe user interface.
 - Voice Web APIs (SpeechRecognition, SpeechSynthesis)
 - Progressive Web App features
+- HTML5, CSS3:** Fundamental web technologies for structuring and styling the application.
+- Modern UI Libraries: (e.g., Material-UI or Tailwind CSS): For accelerating UI development with pre-built components and utility classes.
 
 ### Backend
 - Node.js with Express
 - TypeScript
 - Drizzle ORM
-- OpenAI API integration
+- Google gemini API integration
+ 
+  ### Database
+- MongoDB (Mongoose ODM): A flexible NoSQL database for storing scheme data and user interaction logs, with Mongoose as an elegant ODM for Node.js.
 
 ## License
 
