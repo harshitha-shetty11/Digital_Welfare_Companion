@@ -2,6 +2,9 @@
 
 A voice-enabled multilingual assistant for government welfare schemes and social benefits.
 
+## Demo Walkthrough
+https://youtu.be/FH2lNlDUJQ4
+
 ## Features
 
 - 🎤 Voice recognition and speech synthesis
